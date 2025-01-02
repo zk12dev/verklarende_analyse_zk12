@@ -1,12 +1,12 @@
-'use client'
-// Import necessary modules and libraries
+// page.tsx
+'use client';
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import jsPDF from 'jspdf';
-import { FaBold, FaItalic, FaUnderline, FaArrowsAlt } from 'react-icons/fa';
+import Block from './components/Block';
+import EditorModal from './components/EditorModal';
+import PDFGenerator from './components/PDFGenerator';
 
 const Home = () => {
-  // Define state to manage data for each block
   const [blocks, setBlocks] = useState({
     Hulpvraag: '',
     Gegevens: { Datum: '', Voor: '', Opstellers: '' },
@@ -38,7 +38,6 @@ const Home = () => {
     }));
   }, []);
 
-  // Function to handle saving the data
   const saveData = () => {
     if (selectedBlock) {
       if (selectedBlock === 'Gegevens') {
@@ -59,36 +58,6 @@ const Home = () => {
     }
   };
 
-  // Function to generate PDF
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    let yPosition = 10;
-
-    Object.entries(blocks).forEach(([key, value]) => {
-      doc.text(`${key}:`, 10, yPosition);
-      yPosition += 10;
-      if (typeof value === 'object') {
-        Object.entries(value).forEach(([subKey, subValue]) => {
-          doc.text(`${subKey}: ${subValue || 'No data provided'}`, 10, yPosition);
-          yPosition += 10;
-        });
-      } else {
-        doc.html(value || 'No data provided', { x: 10, y: yPosition });
-      }
-      yPosition += 20;
-    });
-
-    Object.entries(additionalBlocks).forEach(([key, value]) => {
-      doc.text(`${key}:`, 10, yPosition);
-      yPosition += 10;
-      doc.html(value || 'No data provided', { x: 10, y: yPosition });
-      yPosition += 20;
-    });
-
-    doc.save('blocks.pdf');
-  };
-
-  // Function to apply formatting
   const applyFormatting = (format) => {
     let selection = window.getSelection();
     let range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
@@ -106,6 +75,8 @@ const Home = () => {
       setTempData(document.querySelector('#editableArea').innerHTML);
     }
   };
+
+  const generatePDF = PDFGenerator(blocks, additionalBlocks);
 
   return (
     <div style={{ display: 'flex' }}>
@@ -127,64 +98,39 @@ const Home = () => {
         <h1>React Next App: Editable Blocks</h1>
 
         <div style={{ display: 'flex', gap: '10px' }}>
-          <div
-            style={{
-              border: '1px solid #ccc',
-              padding: '10px',
-              width: '66%',
-              backgroundColor: '#f7e4e4',
-            }}
+          <Block
+            title="Hulpvraag"
+            content={blocks['Hulpvraag']}
             onClick={() => {
               setSelectedBlock('Hulpvraag');
               setTempData(blocks['Hulpvraag']);
             }}
-          >
-            <strong>Hulpvraag</strong>
-            <div
-              dangerouslySetInnerHTML={{ __html: blocks['Hulpvraag'] || 'Click to edit' }}
-            ></div>
-          </div>
-
-          <div
-            style={{
-              border: '1px solid #ccc',
-              padding: '10px',
-              width: '33%',
-              backgroundColor: '#f7e4e4',
-            }}
+            style={{ width: '66%', backgroundColor: '#f7e4e4' }}
+          />
+          <Block
+            title="Gegevens"
+            content={`Datum: ${blocks.Gegevens.Datum}<br/>Voor: ${blocks.Gegevens.Voor || 'Voor not filled'}<br/>Opstellers: ${blocks.Gegevens.Opstellers || 'Opstellers not filled'}`}
             onClick={() => {
               setSelectedBlock('Gegevens');
               setTempData(blocks['Gegevens']);
             }}
-          >
-            <strong>Gegevens</strong>
-            <div>{blocks.Gegevens.Datum}</div>
-            <div>{blocks.Gegevens.Voor || 'Voor not filled'}</div>
-            <div>{blocks.Gegevens.Opstellers || 'Opstellers not filled'}</div>
-          </div>
+            style={{ width: '33%', backgroundColor: '#f7e4e4' }}
+          />
         </div>
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
           {['Persoonsfactoren', 'Leergeschiedenis', 'Gezinsfactoren', 'Hulpverleningsgeschiedenis'].map(
             (block) => (
-              <div
+              <Block
                 key={block}
-                style={{
-                  flex: '1',
-                  border: '1px solid #ccc',
-                  padding: '10px',
-                  backgroundColor: '#f4f7e4',
-                }}
+                title={block}
+                content={blocks[block]}
                 onClick={() => {
                   setSelectedBlock(block);
                   setTempData(blocks[block]);
                 }}
-              >
-                <strong>{block}</strong>
-                <div
-                  dangerouslySetInnerHTML={{ __html: blocks[block] || 'Click to edit' }}
-                ></div>
-              </div>
+                style={{ flex: '1', backgroundColor: '#f4f7e4' }}
+              />
             )
           )}
         </div>
@@ -192,122 +138,60 @@ const Home = () => {
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
           <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {['Attitude en beleving', 'Strategie', 'Kennis'].map((block) => (
-              <div
+              <Block
                 key={block}
-                style={{
-                  border: '1px solid #ccc',
-                  padding: '10px',
-                  backgroundColor: '#d3e4f7',
-                }}
+                title={block}
+                content={additionalBlocks[block]}
                 onClick={() => {
                   setSelectedBlock(block);
                   setTempData(additionalBlocks[block]);
                 }}
-              >
-                <strong>{block}</strong>
-                <div
-                  dangerouslySetInnerHTML={{ __html: additionalBlocks[block] || 'Click to edit' }}
-                ></div>
-              </div>
+                style={{ backgroundColor: '#d3e4f7' }}
+              />
             ))}
           </div>
 
           <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {['Attitude en beleving omgeving', 'Benadering (strategie) omgeving', 'Kennis omgeving'].map(
               (block) => (
-                <div
+                <Block
                   key={block}
-                  style={{
-                    border: '1px solid #ccc',
-                    padding: '10px',
-                    backgroundColor: '#e4d3f7',
-                  }}
+                  title={block}
+                  content={additionalBlocks[block]}
                   onClick={() => {
                     setSelectedBlock(block);
                     setTempData(additionalBlocks[block]);
                   }}
-                >
-                  <strong>{block}</strong>
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: additionalBlocks[block] || 'Click to edit',
-                    }}
-                  ></div>
-                </div>
+                  style={{ backgroundColor: '#e4d3f7' }}
+                />
               )
             )}
           </div>
         </div>
 
-        <div
-          style={{
-            marginTop: '20px',
-            border: '1px solid #ccc',
-            padding: '20px',
-            backgroundColor: '#e4f7d3',
+        <Block
+          title="Klachtgedrag gerelateerd aan de hulpvraag"
+          content={additionalBlocks['Klachtgedrag gerelateerd aan de hulpvraag']}
+          onClick={() => {
+            setSelectedBlock('Klachtgedrag gerelateerd aan de hulpvraag');
+            setTempData(additionalBlocks['Klachtgedrag gerelateerd aan de hulpvraag']);
           }}
-        >
-          <strong>Klachtgedrag gerelateerd aan de hulpvraag</strong>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: additionalBlocks['Klachtgedrag gerelateerd aan de hulpvraag'] ||
-                'Click to edit',
-            }}
-          ></div>
-        </div>
+          style={{ marginTop: '20px', backgroundColor: '#e4f7d3' }}
+        />
 
         <button onClick={generatePDF} style={{ marginTop: '20px', padding: '10px 20px' }}>
           Download PDF
         </button>
 
         {selectedBlock && (
-          <div
-            style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              backgroundColor: 'white',
-              border: '1px solid #ccc',
-              padding: '20px',
-              zIndex: 1000,
-            }}
-          >
-            <h2>Edit {selectedBlock}</h2>
-            <div
-              id="editableArea"
-              contentEditable
-              style={{
-                width: '100%',
-                height: '100px',
-                border: '1px solid #ccc',
-                padding: '5px',
-                overflow: 'auto',
-              }}
-              dangerouslySetInnerHTML={{ __html: tempData }}
-              onInput={(e) => setTempData(e.currentTarget.innerHTML)}
-            ></div>
-            <br />
-            <div style={{ marginTop: '10px' }}>
-              <button onClick={() => applyFormatting('bold')}><FaBold /></button>
-              <button onClick={() => applyFormatting('italic')} style={{ marginLeft: '10px' }}>
-                <FaItalic />
-              </button>
-              <button onClick={() => applyFormatting('underline')} style={{ marginLeft: '10px' }}>
-                <FaUnderline />
-              </button>
-            </div>
-            <br />
-            <button onClick={saveData} style={{ marginTop: '10px' }}>
-              Save
-            </button>
-            <button
-              onClick={() => setSelectedBlock(null)}
-              style={{ marginTop: '10px', marginLeft: '10px' }}
-            >
-              Cancel
-            </button>
-          </div>
+          <EditorModal
+            selectedBlock={selectedBlock}
+            tempData={tempData}
+            setTempData={setTempData}
+            saveData={saveData}
+            applyFormatting={applyFormatting}
+            closeModal={() => setSelectedBlock(null)}
+          />
         )}
 
         {selectedBlock && (
