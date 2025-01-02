@@ -1,101 +1,332 @@
-import Image from "next/image";
+'use client'
+// Import necessary modules and libraries
+import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
+import jsPDF from 'jspdf';
+import { FaBold, FaItalic, FaUnderline, FaArrowsAlt } from 'react-icons/fa';
 
-export default function Home() {
+const Home = () => {
+  // Define state to manage data for each block
+  const [blocks, setBlocks] = useState({
+    Hulpvraag: '',
+    Gegevens: { Datum: '', Voor: '', Opstellers: '' },
+    Persoonsfactoren: '',
+    Leergeschiedenis: '',
+    Gezinsfactoren: '',
+    Hulpverleningsgeschiedenis: '',
+  });
+
+  const [additionalBlocks, setAdditionalBlocks] = useState({
+    'Attitude en beleving': '',
+    Strategie: '',
+    Kennis: '',
+    'Attitude en beleving omgeving': '',
+    'Benadering (strategie) omgeving': '',
+    'Kennis omgeving': '',
+    'Klachtgedrag gerelateerd aan de hulpvraag': '',
+  });
+
+  const [selectedBlock, setSelectedBlock] = useState(null);
+  const [tempData, setTempData] = useState('');
+
+  useEffect(() => {
+    const today = new Date();
+    const formattedDate = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+    setBlocks((prev) => ({
+      ...prev,
+      Gegevens: { ...prev.Gegevens, Datum: formattedDate },
+    }));
+  }, []);
+
+  // Function to handle saving the data
+  const saveData = () => {
+    if (selectedBlock) {
+      if (selectedBlock === 'Gegevens') {
+        setBlocks((prevBlocks) => ({
+          ...prevBlocks,
+          Gegevens: { ...prevBlocks.Gegevens, ...tempData },
+        }));
+      } else {
+        const targetBlocks = selectedBlock in blocks ? blocks : additionalBlocks;
+        const setTargetBlocks = selectedBlock in blocks ? setBlocks : setAdditionalBlocks;
+        setTargetBlocks((prevBlocks) => ({
+          ...prevBlocks,
+          [selectedBlock]: tempData,
+        }));
+      }
+      setSelectedBlock(null);
+      setTempData('');
+    }
+  };
+
+  // Function to generate PDF
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    let yPosition = 10;
+
+    Object.entries(blocks).forEach(([key, value]) => {
+      doc.text(`${key}:`, 10, yPosition);
+      yPosition += 10;
+      if (typeof value === 'object') {
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          doc.text(`${subKey}: ${subValue || 'No data provided'}`, 10, yPosition);
+          yPosition += 10;
+        });
+      } else {
+        doc.html(value || 'No data provided', { x: 10, y: yPosition });
+      }
+      yPosition += 20;
+    });
+
+    Object.entries(additionalBlocks).forEach(([key, value]) => {
+      doc.text(`${key}:`, 10, yPosition);
+      yPosition += 10;
+      doc.html(value || 'No data provided', { x: 10, y: yPosition });
+      yPosition += 20;
+    });
+
+    doc.save('blocks.pdf');
+  };
+
+  // Function to apply formatting
+  const applyFormatting = (format) => {
+    let selection = window.getSelection();
+    let range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+
+    if (range) {
+      const span = document.createElement('span');
+      if (format === 'bold') {
+        span.style.fontWeight = 'bold';
+      } else if (format === 'italic') {
+        span.style.fontStyle = 'italic';
+      } else if (format === 'underline') {
+        span.style.textDecoration = 'underline';
+      }
+      range.surroundContents(span);
+      setTempData(document.querySelector('#editableArea').innerHTML);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div style={{ display: 'flex' }}>
+      <aside
+        style={{
+          width: '200px',
+          borderRight: '1px solid #ccc',
+          padding: '10px',
+        }}
+      >
+        <h3>Menu</h3>
+        <ul>
+          <li>Rearrange Blocks</li>
+          <li>Draw Arrows</li>
+        </ul>
+      </aside>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <main style={{ padding: '20px', flexGrow: 1 }}>
+        <h1>React Next App: Editable Blocks</h1>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <div
+            style={{
+              border: '1px solid #ccc',
+              padding: '10px',
+              width: '66%',
+              backgroundColor: '#f7e4e4',
+            }}
+            onClick={() => {
+              setSelectedBlock('Hulpvraag');
+              setTempData(blocks['Hulpvraag']);
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <strong>Hulpvraag</strong>
+            <div
+              dangerouslySetInnerHTML={{ __html: blocks['Hulpvraag'] || 'Click to edit' }}
+            ></div>
+          </div>
+
+          <div
+            style={{
+              border: '1px solid #ccc',
+              padding: '10px',
+              width: '33%',
+              backgroundColor: '#f7e4e4',
+            }}
+            onClick={() => {
+              setSelectedBlock('Gegevens');
+              setTempData(blocks['Gegevens']);
+            }}
           >
-            Read our docs
-          </a>
+            <strong>Gegevens</strong>
+            <div>{blocks.Gegevens.Datum}</div>
+            <div>{blocks.Gegevens.Voor || 'Voor not filled'}</div>
+            <div>{blocks.Gegevens.Opstellers || 'Opstellers not filled'}</div>
+          </div>
         </div>
+
+        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+          {['Persoonsfactoren', 'Leergeschiedenis', 'Gezinsfactoren', 'Hulpverleningsgeschiedenis'].map(
+            (block) => (
+              <div
+                key={block}
+                style={{
+                  flex: '1',
+                  border: '1px solid #ccc',
+                  padding: '10px',
+                  backgroundColor: '#f4f7e4',
+                }}
+                onClick={() => {
+                  setSelectedBlock(block);
+                  setTempData(blocks[block]);
+                }}
+              >
+                <strong>{block}</strong>
+                <div
+                  dangerouslySetInnerHTML={{ __html: blocks[block] || 'Click to edit' }}
+                ></div>
+              </div>
+            )
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+          <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {['Attitude en beleving', 'Strategie', 'Kennis'].map((block) => (
+              <div
+                key={block}
+                style={{
+                  border: '1px solid #ccc',
+                  padding: '10px',
+                  backgroundColor: '#d3e4f7',
+                }}
+                onClick={() => {
+                  setSelectedBlock(block);
+                  setTempData(additionalBlocks[block]);
+                }}
+              >
+                <strong>{block}</strong>
+                <div
+                  dangerouslySetInnerHTML={{ __html: additionalBlocks[block] || 'Click to edit' }}
+                ></div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {['Attitude en beleving omgeving', 'Benadering (strategie) omgeving', 'Kennis omgeving'].map(
+              (block) => (
+                <div
+                  key={block}
+                  style={{
+                    border: '1px solid #ccc',
+                    padding: '10px',
+                    backgroundColor: '#e4d3f7',
+                  }}
+                  onClick={() => {
+                    setSelectedBlock(block);
+                    setTempData(additionalBlocks[block]);
+                  }}
+                >
+                  <strong>{block}</strong>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: additionalBlocks[block] || 'Click to edit',
+                    }}
+                  ></div>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: '20px',
+            border: '1px solid #ccc',
+            padding: '20px',
+            backgroundColor: '#e4f7d3',
+          }}
+        >
+          <strong>Klachtgedrag gerelateerd aan de hulpvraag</strong>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: additionalBlocks['Klachtgedrag gerelateerd aan de hulpvraag'] ||
+                'Click to edit',
+            }}
+          ></div>
+        </div>
+
+        <button onClick={generatePDF} style={{ marginTop: '20px', padding: '10px 20px' }}>
+          Download PDF
+        </button>
+
+        {selectedBlock && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              backgroundColor: 'white',
+              border: '1px solid #ccc',
+              padding: '20px',
+              zIndex: 1000,
+            }}
+          >
+            <h2>Edit {selectedBlock}</h2>
+            <div
+              id="editableArea"
+              contentEditable
+              style={{
+                width: '100%',
+                height: '100px',
+                border: '1px solid #ccc',
+                padding: '5px',
+                overflow: 'auto',
+              }}
+              dangerouslySetInnerHTML={{ __html: tempData }}
+              onInput={(e) => setTempData(e.currentTarget.innerHTML)}
+            ></div>
+            <br />
+            <div style={{ marginTop: '10px' }}>
+              <button onClick={() => applyFormatting('bold')}><FaBold /></button>
+              <button onClick={() => applyFormatting('italic')} style={{ marginLeft: '10px' }}>
+                <FaItalic />
+              </button>
+              <button onClick={() => applyFormatting('underline')} style={{ marginLeft: '10px' }}>
+                <FaUnderline />
+              </button>
+            </div>
+            <br />
+            <button onClick={saveData} style={{ marginTop: '10px' }}>
+              Save
+            </button>
+            <button
+              onClick={() => setSelectedBlock(null)}
+              style={{ marginTop: '10px', marginLeft: '10px' }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        {selectedBlock && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 999,
+            }}
+            onClick={() => setSelectedBlock(null)}
+          ></div>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
-}
+};
+
+export default Home;
