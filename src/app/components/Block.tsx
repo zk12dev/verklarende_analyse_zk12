@@ -8,7 +8,7 @@ const Block = ({ title, content, onClick, style }) => {
       onClick={onClick}
     >
       <strong>{title}</strong>
-      <div dangerouslySetInnerHTML={{ __html: content || 'Click to edit' }}></div>
+      <div dangerouslySetInnerHTML={{ __html: content || 'Klik om te bewerken' }}></div>
     </div>
   );
 };

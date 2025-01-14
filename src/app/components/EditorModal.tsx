@@ -2,6 +2,10 @@
 import React from 'react';
 import { FaBold, FaItalic, FaUnderline } from 'react-icons/fa';
 
+
+// TODO Kleuren aanpassen naar ZK12 kleuren ipv huidige kleuren.
+
+
 const EditorModal = ({
   selectedBlock,
   tempData,

@@ -1,6 +1,8 @@
 // PDFGenerator.js
 import jsPDF from 'jspdf';
 
+// TODO Print PDF moet er visueel uit zien zoals op het scherm.
+
 const PDFGenerator = (blocks, additionalBlocks) => {
   const generatePDF = () => {
     const doc = new jsPDF();
