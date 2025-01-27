@@ -1,9 +1,10 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DraggableContainer from './components/DraggableContainer';
 import Block from './components/Block';
 import EditorModal from './components/EditorModal';
-import PDFGenerator from './components/PDFGenerator';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const Home = () => {
   const [blocks, setBlocks] = useState([
@@ -35,6 +36,7 @@ const Home = () => {
 
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [tempData, setTempData] = useState('');
+  const contentRef = useRef(null);
 
   useEffect(() => {
     const today = new Date();
@@ -70,9 +72,22 @@ const Home = () => {
 
   const getBlockById = (id) => blocks.find((block) => block.id === id);
 
+  const generatePDF = async () => {
+    const content = contentRef.current;
+    if (content) {
+      const canvas = await html2canvas(content, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('layout.pdf');
+    }
+  };
+
   return (
     <div style={{ display: 'flex' }}>
-      <aside
+      {/* <aside
         style={{
           width: '200px',
           borderRight: '1px solid #ccc',
@@ -84,11 +99,12 @@ const Home = () => {
           <li>Blokken herschikken</li>
           <li>Relaties aangeven</li>
         </ul>
-      </aside>
+      </aside> */}
 
-      <main style={{ padding: '20px', flexGrow: 1 }}>
+      <main style={{ padding: '20px', flexGrow: 1 }} ref={contentRef}>
         <h1>Zorgkracht 12 App</h1>
 
+        {/* First row */}
         <div style={{ display: 'flex', gap: '10px' }}>
           {row1.map((id) => {
             const block = getBlockById(id);
@@ -106,13 +122,21 @@ const Home = () => {
                     setSelectedBlock(id);
                     setTempData(block.content);
                   }}
-                  style={{ width: '50%', backgroundColor: '#f7e4e4' }}
+                  style={{ 
+                    width: '100%', 
+                    backgroundColor: '#f7e4e4',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '10px',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)', 
+                  }}
                 />
               </DraggableContainer>
             );
           })}
         </div>
 
+        {/* Second row */}
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
           {row2.map((id) => {
             const block = getBlockById(id);
@@ -130,13 +154,21 @@ const Home = () => {
                     setSelectedBlock(id);
                     setTempData(block.content);
                   }}
-                  style={{ flex: '1', backgroundColor: '#f4f7e4' }}
+                  style={{ 
+                    flex: '1', 
+                    backgroundColor: '#f4f7e4',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '10px',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                  }}
                 />
               </DraggableContainer>
             );
           })}
         </div>
 
+        {/* Two columns */}
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
           <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {column1.map((id) => {
@@ -155,7 +187,13 @@ const Home = () => {
                       setSelectedBlock(id);
                       setTempData(block.content);
                     }}
-                    style={{ backgroundColor: '#d3e4f7' }}
+                    style={{ 
+                      backgroundColor: '#d3e4f7',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                     }}
                   />
                 </DraggableContainer>
               );
@@ -179,7 +217,13 @@ const Home = () => {
                       setSelectedBlock(id);
                       setTempData(block.content);
                     }}
-                    style={{ backgroundColor: '#e4d3f7' }}
+                    style={{ 
+                      backgroundColor: '#e4d3f7',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                     }}
                   />
                 </DraggableContainer>
               );
@@ -187,6 +231,7 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Bottom block */}
         <div style={{ marginTop: '20px' }}>
           {bottomBlock.map((id) => {
             const block = getBlockById(id);
@@ -204,12 +249,34 @@ const Home = () => {
                     setSelectedBlock(id);
                     setTempData(block.content);
                   }}
-                  style={{ backgroundColor: '#e4f7d3' }}
+                  style={{ 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '10px',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                    backgroundColor: '#e4f7d3',
+                   }}
                 />
               </DraggableContainer>
             );
           })}
         </div>
+
+        {/* Print PDF Button */}
+        <button
+          onClick={generatePDF}
+          style={{
+            marginTop: '20px',
+            padding: '10px 20px',
+            backgroundColor: '#007BFF',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          Print PDF
+        </button>
 
         {selectedBlock && (
           <EditorModal

@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/page.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/page.js", "src/app/components/Block.js", "src/app/components/PDFGenerator.js", "src/app/components/DraggableContainer.js", "src/app/components/EditorModal.js"],
   "exclude": ["node_modules"]
 }

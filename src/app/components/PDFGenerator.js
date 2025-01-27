@@ -13,11 +13,11 @@ const PDFGenerator = (blocks, additionalBlocks) => {
       yPosition += 10;
       if (typeof value === 'object') {
         Object.entries(value).forEach(([subKey, subValue]) => {
-          doc.text(`${subKey}: ${subValue || 'No data provided'}`, 10, yPosition);
+          doc.text(`${subKey}: ${subValue || 'Niks ingevoerd.'}`, 10, yPosition);
           yPosition += 10;
         });
       } else {
-        doc.text(value || 'No data provided', 10, yPosition);
+        doc.text(value || 'Niks ingevoerd.', 10, yPosition);
         yPosition += 10;
       }
       yPosition += 10;
@@ -26,7 +26,7 @@ const PDFGenerator = (blocks, additionalBlocks) => {
     Object.entries(additionalBlocks).forEach(([key, value]) => {
       doc.text(`${key}:`, 10, yPosition);
       yPosition += 10;
-      doc.text(value || 'No data provided', 10, yPosition);
+      doc.text(value || 'Niks ingevoerd.', 10, yPosition);
       yPosition += 10;
     });
 
