@@ -1,6 +1,6 @@
 import React from 'react';
 
-const DraggableContainer = ({ id, children, onDrop }) => {
+const DraggableContainer = ({ id, children, onDragStart, onDragOver, onDrop }) => {
   return (
     <div
       draggable
