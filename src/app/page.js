@@ -589,29 +589,29 @@ const Home = () => {
 
 export default Home;
 
-const express = require('express');
-const next = require('next');
-const path = require('path');
+// const express = require('express');
+// const next = require('next');
+// const path = require('path');
 
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
-const handle = app.getRequestHandler();
+// const dev = process.env.NODE_ENV !== 'production';
+// const app = next({ dev });
+// const handle = app.getRequestHandler();
 
-const port = process.env.PORT || 3000;
+// const port = process.env.PORT || 3000;
 
-app.prepare().then(() => {
-  const server = express();
+// app.prepare().then(() => {
+//   const server = express();
 
-  // Serve static files
-  server.use('/static', express.static(path.join(__dirname, 'public')));
+//   // Serve static files
+//   server.use('/static', express.static(path.join(__dirname, 'public')));
 
-  // Handle all other requests with Next.js
-  server.all('*', (req, res) => {
-    return handle(req, res);
-  });
+//   // Handle all other requests with Next.js
+//   server.all('*', (req, res) => {
+//     return handle(req, res);
+//   });
 
-  server.listen(port, (err) => {
-    if (err) throw err;
-    console.log(`> Ready on http://localhost:${port}`);
-  });
-});
+//   server.listen(port, (err) => {
+//     if (err) throw err;
+//     console.log(`> Ready on http://localhost:${port}`);
+//   });
+// });
