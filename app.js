@@ -588,7 +588,7 @@ const Home = () => {
 };
 
 export default Home;
-=======
+
 const express = require('express');
 const next = require('next');
 const path = require('path');
